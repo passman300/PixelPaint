@@ -9,12 +9,42 @@ using System.Threading.Tasks;
 
 namespace PixelPaint
 {
-    internal class Shape
+    public class Shape
     {
-
-        public Shape()
+        public List<Vector2> Points
         {
+            get;
+            set;
+        }
 
+        public Vector2 Origin
+        {
+            get;
+            set;
+        }
+
+        public Color Color
+        {
+            get;
+            set;
+        }
+
+        public Shape(Vector2 origin, Color color)
+        {
+            Origin = origin;
+
+            Color = color;
+
+            Points = new List<Vector2>();
+        }
+
+        public virtual void Update(Vector2 mousePos) {}
+
+        public virtual void Update(Color[,] pixelColor) {}
+
+        public virtual void GetPixels()
+        {
+            
         }
     }
 }

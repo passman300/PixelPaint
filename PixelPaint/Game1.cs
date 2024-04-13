@@ -13,13 +13,18 @@ using System.Linq;
 namespace PixelPaint
 {
     /// <summary>
-    /// This is the main type for your game.
+    /// This is the main types for your game.
     /// </summary>
     public class Game1 : Game
     {
+        public enum Tool
+        {
+            Box,
+            Circle,
+            Fill
+        }
 
-
-        //Track the available colours, one will be active at a time
+        //Track the available colors, one will be active at a time
         private const int BLACK = 0;
         private const int WHITE = 1;
         private const int GREY = 2;
@@ -29,18 +34,20 @@ namespace PixelPaint
         private const int BLUE = 6;
         private const int PINK = 7;
 
-        //Track the number of availabe colours
-        private const int NUM_COLOURS = 8;
+        //Track the number of availabe colors
+        private const int NUM_COLORS = 8;
+        public Tool DrawTool { get; set; }
+        private bool drawActive { get; set; }
 
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
 
         //Track the image used for every pixel which will be stretched to be one canvas pixel
-        //private Texture2D pxlImg;
+        private Texture2D pxlImg;
 
         //Track the fonts used throughout the HUD
-        //private SpriteFont uiFont;
-        //private SpriteFont stackFont;
+        private SpriteFont uiFont;
+        private SpriteFont stackFont;
 
         //Track the full screen dimensions
         private int screenWidth;
@@ -61,26 +68,27 @@ namespace PixelPaint
         private int[] dims = new int[] { 10, 16, 20, 25, 32, 40, 50, 80 };
         private int dimIdx;
 
-        //Track all of the colour data; images, HUD rectangles, actual colours, colour text, index of active colour
-        private Texture2D[] colourImgs = new Texture2D[NUM_COLOURS];
-        private Rectangle[] colourRecs = new Rectangle[NUM_COLOURS];
-        private Color[] colours = new Color[NUM_COLOURS];
-        private string[] colourText = new string[NUM_COLOURS];
-        private int colourIdx = BLACK;
+        //Track all of the color data; images, HUD rectangles, actual colors, color text, index of active color
+        private Texture2D[] colorImgs = new Texture2D[NUM_COLORS];
+        private Rectangle[] colorRecs = new Rectangle[NUM_COLORS];
+        private Color[] colors = new Color[NUM_COLORS];
+        private string[] colorText = new string[NUM_COLORS];
+        private int colorIdx = BLACK;
 
         //Track all of the HUD images (action buttons, undo/redo, Clear Canvas, check boxes)
-        //private Texture2D squareBtnImg;
-        //private Texture2D squareBtnActiveImg;
-        //private Texture2D circleBtnImg;
-        //private Texture2D circleBtnActiveImg;
-        //private Texture2D fillBtnImg;
-        //private Texture2D fillBtnActiveImg;
-        //private Texture2D undoBtnImg;
-        //private Texture2D redoBtnImg;
-        //private Texture2D clearBtnImg;
-        //private Texture2D checkedBoxImg;
-        //private Texture2D uncheckedBoxImg;
-        //private Texture2D toBeCheckedBoxImg;
+        private Texture2D squareBtnImg;
+        private Texture2D squareBtnActiveImg;
+        private Texture2D circleBtnImg;
+        private Texture2D circleBtnActiveImg;
+        private Texture2D fillBtnImg;
+        private Texture2D fillBtnActiveImg;
+        private Texture2D undoBtnImg;
+        private Texture2D redoBtnImg;
+        private Texture2D clearBtnImg;
+        private Texture2D checkedBoxImg;
+        private Texture2D uncheckedBoxImg;
+        private Texture2D toBeCheckedBoxImg;
+
 
         public Game1()
         {
@@ -119,67 +127,59 @@ namespace PixelPaint
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // load all content
-            Assets.Content = Content;
-            Assets.Initialize();
+            //Load in the SpriteFonts and pixel image
+            uiFont = Content.Load<SpriteFont>("Fonts/UIFont");
+            stackFont = Content.Load<SpriteFont>("Fonts/StackFont");
+            pxlImg = Content.Load<Texture2D>("Images/Sprites/BlankPixel");
 
-            ////Load in the SpriteFonts and pixel image
-            //uiFont = Content.Load<SpriteFont>("Fonts/UIFont");
-            //stackFont = Content.Load<SpriteFont>("Fonts/StackFont");
-            //pxlImg = Content.Load<Texture2D>("Images/Sprites/BlankPixel");
-
-            //Load HUD colour box icons
-            colourImgs[BLACK] = Assets.blackImg;
-            colourImgs[WHITE] = Assets.whiteImg;
-            colourImgs[GREY] = Assets.greyImg;
-            colourImgs[YELLOW] = Assets.yellowImg;
-            colourImgs[RED] = Assets.redImg;
-            colourImgs[GREEN] = Assets.greenImg;
-            colourImgs[BLUE] = Assets.blueImg;
-            colourImgs[PINK] = Assets.pinkImg;
-            //colourImgs[BLACK] = Content.Load<Texture2D>("Images/Sprites/Black");
-            //colourImgs[WHITE] = Content.Load<Texture2D>("Images/Sprites/White");
-            //colourImgs[GREY] = Content.Load<Texture2D>("Images/Sprites/Grey");
-            //colourImgs[YELLOW] = Content.Load<Texture2D>("Images/Sprites/Yellow");
-            //colourImgs[RED] = Content.Load<Texture2D>("Images/Sprites/Red");
-            //colourImgs[GREEN] = Content.Load<Texture2D>("Images/Sprites/Green");
-            //colourImgs[BLUE] = Content.Load<Texture2D>("Images/Sprites/Blue");
-            //colourImgs[PINK] = Content.Load<Texture2D>("Images/Sprites/Pink");
+            //Load HUD color box icons
+            colorImgs[BLACK] = Content.Load<Texture2D>("Images/Sprites/Black");
+            colorImgs[WHITE] = Content.Load<Texture2D>("Images/Sprites/White");
+            colorImgs[GREY] = Content.Load<Texture2D>("Images/Sprites/Grey");
+            colorImgs[YELLOW] = Content.Load<Texture2D>("Images/Sprites/Yellow");
+            colorImgs[RED] = Content.Load<Texture2D>("Images/Sprites/Red");
+            colorImgs[GREEN] = Content.Load<Texture2D>("Images/Sprites/Green");
+            colorImgs[BLUE] = Content.Load<Texture2D>("Images/Sprites/Blue");
+            colorImgs[PINK] = Content.Load<Texture2D>("Images/Sprites/Pink");
 
             //Load in all HUD buttons
-            //squareBtnActiveImg = Content.Load<Texture2D>("Images/Sprites/SquareActive");
-            //squareBtnImg = Content.Load<Texture2D>("Images/Sprites/SquareInactive");
-            //circleBtnActiveImg = Content.Load<Texture2D>("Images/Sprites/CircleActive");
-            //circleBtnImg = Content.Load<Texture2D>("Images/Sprites/CircleInactive");
-            //fillBtnActiveImg = Content.Load<Texture2D>("Images/Sprites/FillActive");
-            //fillBtnImg = Content.Load<Texture2D>("Images/Sprites/Fill");
-            //undoBtnImg = Content.Load<Texture2D>("Images/Sprites/Undo");
-            //redoBtnImg = Content.Load<Texture2D>("Images/Sprites/Redo");
-            //clearBtnImg = Content.Load<Texture2D>("Images/Sprites/ClearCanvas");
-            //checkedBoxImg = Content.Load<Texture2D>("Images/Sprites/CheckedBox");
-            //uncheckedBoxImg = Content.Load<Texture2D>("Images/Sprites/UncheckedBox");
-            //toBeCheckedBoxImg = Content.Load<Texture2D>("Images/Sprites/ToBeCheckedBox");
+            squareBtnActiveImg = Content.Load<Texture2D>("Images/Sprites/SquareActive");
+            squareBtnImg = Content.Load<Texture2D>("Images/Sprites/SquareInactive");
+            circleBtnActiveImg = Content.Load<Texture2D>("Images/Sprites/CircleActive");
+            circleBtnImg = Content.Load<Texture2D>("Images/Sprites/CircleInactive");
+            fillBtnActiveImg = Content.Load<Texture2D>("Images/Sprites/FillActive");
+            fillBtnImg = Content.Load<Texture2D>("Images/Sprites/Fill");
+            undoBtnImg = Content.Load<Texture2D>("Images/Sprites/Undo");
+            redoBtnImg = Content.Load<Texture2D>("Images/Sprites/Redo");
+            clearBtnImg = Content.Load<Texture2D>("Images/Sprites/ClearCanvas");
+            checkedBoxImg = Content.Load<Texture2D>("Images/Sprites/CheckedBox");
+            uncheckedBoxImg = Content.Load<Texture2D>("Images/Sprites/UncheckedBox");
+            toBeCheckedBoxImg = Content.Load<Texture2D>("Images/Sprites/ToBeCheckedBox");
 
-            //Setup up the colours and their associated text values
-            colours[BLACK] = Color.Black;
-            colours[WHITE] = Color.White;
-            colours[GREY] = Color.DarkGray;
-            colours[YELLOW] = Color.Yellow;
-            colours[RED] = Color.Red;
-            colours[GREEN] = Color.Green;
-            colours[BLUE] = Color.Blue;
-            colours[PINK] = Color.Pink;
-            colourText[BLACK] = "BLACK";
-            colourText[WHITE] = "WHITE";
-            colourText[GREY] = "GREY";
-            colourText[YELLOW] = "YELLOW";
-            colourText[RED] = "RED";
-            colourText[GREEN] = "GREEN";
-            colourText[BLUE] = "BLUE";
-            colourText[PINK] = "PINK";
+            //Setup up the colors and their associated text values
+            colors[BLACK] = Color.Black;
+            colors[WHITE] = Color.White;
+            colors[GREY] = Color.DarkGray;
+            colors[YELLOW] = Color.Yellow;
+            colors[RED] = Color.Red;
+            colors[GREEN] = Color.Green;
+            colors[BLUE] = Color.Blue;
+            colors[PINK] = Color.Pink;
+            colorText[BLACK] = "BLACK";
+            colorText[WHITE] = "WHITE";
+            colorText[GREY] = "GREY";
+            colorText[YELLOW] = "YELLOW";
+            colorText[RED] = "RED";
+            colorText[GREEN] = "GREEN";
+            colorText[BLUE] = "BLUE";
+            colorText[PINK] = "PINK";
 
             //Set the active dimension index to the largest size possible
             dimIdx = dims.Length - 1;
+
+            canvas = new Canvas(dims[dimIdx], screenHeight, pxlImg);
+
+            DrawTool = Tool.Box; // set the default drawing tool
         }
 
         /// <summary>
@@ -198,8 +198,30 @@ namespace PixelPaint
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            // update current and previous mouse states
             prevMouse = mouse;
             mouse = Mouse.GetState();
+
+            // update the canvas if someone starts drawing
+            if (!drawActive && mouse.LeftButton == ButtonState.Pressed && prevMouse.LeftButton != ButtonState.Pressed)
+            {
+                // create a new shape
+                canvas.Create(DrawTool, mouse, colors[colorIdx]);
+
+                // set drawActive to true
+                drawActive = true;
+            }
+
+            // update the canvas if someone stops drawing
+            else if (drawActive)
+            {
+                // update the canvas, and set drawActive to false if the canvas is no longer being drawn
+                if (!canvas.Update(DrawTool, mouse, prevMouse))
+                {
+                    drawActive = false;
+                }
+            }
+            
 
             base.Update(gameTime);
         }
@@ -214,6 +236,7 @@ namespace PixelPaint
 
             spriteBatch.Begin();
             //Draw the Canvas
+            canvas.Draw(spriteBatch, drawActive);
             //Draw the HUD
             spriteBatch.End();
 
