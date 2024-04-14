@@ -16,7 +16,7 @@ namespace PixelPaint
 
         private Color clickColor;
 
-        // private bool[,] isVisited;
+        private bool[,] isVisited;
 
         private Color[,] pixelColorCopy; // the pixel color array temporary storage
 
@@ -26,10 +26,11 @@ namespace PixelPaint
         {
             this.clickColor = clickColor;
 
+
             // fill the isVisited array
             pixelColorCopy = pixelColor;
 
-            // isVisited = new bool[pixelColor.GetLength(0), pixelColor.GetLength(1)];
+            isVisited = new bool[pixelColor.GetLength(0), pixelColor.GetLength(1)];
         }
 
         public override void Update()
@@ -40,7 +41,6 @@ namespace PixelPaint
             FloodFill(Origin);
 
             Console.WriteLine(count + " - " + points.Count());
-
         }
 
         private void FloodFill(Vector2 pos)
@@ -49,17 +49,19 @@ namespace PixelPaint
 
             count++;
 
-            pixelColorCopy[(int)pos.X, (int)pos.Y] = Color;
+            isVisited[(int)pos.X, (int)pos.Y] = true;
+
 
             points.Add(pos);
 
             for (int i = 0; i < directions.Length; i++)
             {
                 if (pos.X + directions[i].X >= 0 
-                    && pos.X + directions[i].X < pixelColorCopy.GetLength(0) 
+                    && pos.X + directions[i].X < isVisited.GetLength(0) 
                     && pos.Y + directions[i].Y >= 0 
-                    && pos.Y + directions[i].Y < pixelColorCopy.GetLength(1) 
-                    && pixelColorCopy[(int)(pos.X + directions[i].X), (int)(pos.Y + directions[i].Y)] == clickColor)
+                    && pos.Y + directions[i].Y < isVisited.GetLength(1) 
+                    && pixelColorCopy[(int)(pos.X + directions[i].X), (int)(pos.Y + directions[i].Y)] == clickColor 
+                    && !isVisited[(int)(pos.X + directions[i].X), (int)(pos.Y + directions[i].Y)])
                 {
                     FloodFill(pos + directions[i]);
                 }
