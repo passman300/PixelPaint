@@ -16,6 +16,10 @@ namespace PixelPaint
 
         private Color clickColor;
 
+        private Color[,] pixelColor; // the pixel color array temporary storage
+
+        int count = 0;
+
         public Fill(Vector2 origin, Color fillColor, Color clickColor) : base(origin, fillColor)
         {
             this.clickColor = clickColor;
@@ -23,23 +27,57 @@ namespace PixelPaint
 
         public override void Update(Color[,] pixelColor)
         {
-            FloodFill(Origin, pixelColor);
+            // only fill if the color is different
+            if (clickColor == Color) return;
+
+            this.pixelColor = pixelColor;
+
+
+            FloodFill(Origin);
+
         }
 
-        private void FloodFill(Vector2 pos, Color[,] pixelColor)
+        private void FloodFill(Vector2 pos)
         {
-            if (pos.X < 0 || pos.X >= pixelColor.GetLength(0) || pos.Y < 0 || pos.Y >= pixelColor.GetLength(1)) return;
+            //  if (clickColor == Color) return;
 
-            if (pixelColor[(int)pos.X, (int)pos.Y] != clickColor) return;
+            count++;
+
+            Console.WriteLine(count + " - " + Points.Count());
 
             pixelColor[(int)pos.X, (int)pos.Y] = Color;
 
             Points.Add(pos);
 
-            foreach (Vector2 dir in directions)
+            for (int i = 0; i < directions.Length; i++)
             {
-                FloodFill(pos + dir, pixelColor);
+                if (pos.X + directions[i].X >= 0 
+                    && pos.X + directions[i].X < pixelColor.GetLength(0) 
+                    && pos.Y + directions[i].Y >= 0 
+                    && pos.Y + directions[i].Y < pixelColor.GetLength(1) 
+                    && pixelColor[(int)(pos.X + directions[i].X), (int)(pos.Y + directions[i].Y)] == clickColor)
+                {
+                    FloodFill(pos + directions[i]);
+                }
             }
+
+            
+
+
+            //if (pixelColor[(int)pos.X, (int)pos.Y] == clickColor)
+            //{
+            //    pixelColor[(int)pos.X, (int)pos.Y] = Color;
+
+            //    Points.Add(pos);
+
+            //    for (int i = 0; i < directions.Length; i++)
+            //    {
+            //        if (pos.X + directions[i].X >= 0 && pos.X + directions[i].X < pixelColor.GetLength(0) && pos.Y + directions[i].Y >= 0 && pos.Y + directions[i].Y < pixelColor.GetLength(1) && pixelColor[(int)(pos.X + directions[i].X), (int)(pos.Y + directions[i].Y)] == clickColor)
+            //        {
+            //            FloodFill(pos + directions[i]);
+            //        }
+            //    }
+            //}
         }
     }
 }

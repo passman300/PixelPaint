@@ -51,7 +51,7 @@ namespace PixelPaint
 
             for (int i = 0; i < Math.Min(Count(), 5); i++)
             {
-                topFive.Add(Top().Color.ToString() + " - " + Top().GetType().Name);
+                topFive.Add(Top().Color.ToString().ToUpper() + " - " + Top().GetType().Name);
             }
 
             return topFive;

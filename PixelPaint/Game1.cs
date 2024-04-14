@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace PixelPaint
 {
@@ -23,6 +24,44 @@ namespace PixelPaint
             Circle,
             Fill
         }
+
+        //Tack number of tool action buttons
+        private const int NUM_TOOL_BUTTONS = 3;
+        private const int NUM_UNDO_REDO_BUTTONS = 2;
+        private const int NUM_CANVAS_SIZE_BUTTONS = 8;
+        private const int NUM_COLOR_BUTTONS = 8;
+
+        //Track which index button is
+        private const int BOX_BUTTON = 0;
+        private const int CIRCLE_BUTTON = 1;
+        private const int FILL_BUTTON = 2;
+        private const int UNDO_BUTTON = 0;
+        private const int REDO_BUTTON = 1;
+        private const int SMALL_CANVAS_BUTTON = 0;
+        private const int MEDIUM_CANVAS_BUTTON = 1;
+        private const int LARGE_CANVAS_BUTTON = 2;
+        private const int BLACK_BUTTON = 0;
+        private const int WHITE_BUTTON = 1;
+        private const int GREY_BUTTON = 2;
+        private const int YELLOW_BUTTON = 3;
+        private const int RED_BUTTON = 4;
+        private const int GREEN_BUTTON = 5;
+        private const int BLUE_BUTTON = 6;
+        private const int PINK_BUTTON = 7;
+
+        //Track Y positions of tool action buttons
+        private const int TOOL_BUTTON_Y = 10;
+        private const int UNDO_REDO_BUTTON_Y = 10;
+        private const int CANVAS_SIZE_BUTTON_Y = 10;
+        private const int COLOR_BUTTON_Y = 570;
+
+        //Track HUD button widths and heights
+        private const int LARGE_BUTTON_WIDTH = 50;
+        private const int LARGE_BUTTON_HEIGHT = 50;
+        private const int MEDIUM_BUTTON_WIDTH = 45;
+        private const int MEDIUM_BUTTON_HEIGHT = 45;
+        private const int SMALL_BUTTON_WIDTH = 40;
+        private const int SMALL_BUTTON_HEIGHT = 40;
 
         //Track the available colors, one will be active at a time
         private const int BLACK = 0;
@@ -55,7 +94,7 @@ namespace PixelPaint
 
         //Track the width of the hud, which is the screenWidth - screenHeight = 200
         //The canvas is a square of 800x800
-        private int hudWidth;
+        private int hudWidth = 200;
 
         private MouseState mouse;
         private MouseState prevMouse;
@@ -75,6 +114,9 @@ namespace PixelPaint
         private string[] colorText = new string[NUM_COLORS];
         private int colorIdx = BLACK;
 
+        //Track all HUD tool buttons rectangles
+        private Rectangle[] toolBtnRecs = new Rectangle[NUM_TOOL_BUTTONS];
+       
         //Track all of the HUD images (action buttons, undo/redo, Clear Canvas, check boxes)
         private Texture2D squareBtnImg;
         private Texture2D squareBtnActiveImg;
@@ -174,12 +216,20 @@ namespace PixelPaint
             colorText[BLUE] = "BLUE";
             colorText[PINK] = "PINK";
 
+
+
             //Set the active dimension index to the largest size possible
             dimIdx = dims.Length - 1;
 
             canvas = new Canvas(dims[dimIdx], screenHeight, pxlImg);
 
             DrawTool = Tool.Box; // set the default drawing tool
+
+
+            toolBtnRecs = new Rectangle[NUM_TOOL_BUTTONS];
+            toolBtnRecs = CenterHudRectangles(toolBtnRecs, TOOL_BUTTON_Y, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT, 0.5f);
+
+            colorRecs = CenterHudRectangles(colorRecs, COLOR_BUTTON_Y, SMALL_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT, 2, 0.5f);
         }
 
         /// <summary>
@@ -202,14 +252,37 @@ namespace PixelPaint
             prevMouse = mouse;
             mouse = Mouse.GetState();
 
-            // update the canvas if someone starts drawing
-            if (!drawActive && mouse.LeftButton == ButtonState.Pressed && prevMouse.LeftButton != ButtonState.Pressed)
+            // check if not drawing
+            if (!drawActive)
             {
-                // create a new shape
-                canvas.Create(DrawTool, mouse, colors[colorIdx]);
+                // check if the mouse is clicks
+                if (mouse.LeftButton == ButtonState.Pressed && prevMouse.LeftButton != ButtonState.Pressed)
+                {
+                    // check if the mouse is on the canvas
+                    if (mouse.X >= 0 && mouse.Y >= 0 && mouse.X < canvas.ScreenSize && mouse.Y < canvas.ScreenSize)
+                    {
+                        // create a new shape
+                        canvas.Create(DrawTool, mouse, colors[colorIdx]);
 
-                // set drawActive to true
-                drawActive = true;
+                        // set drawActive to true
+                        drawActive = true;
+                    }
+                    else
+                    {
+                        // check if mouse is on a tool button
+                        for (int i = 0; i < toolBtnRecs.Length; i++)
+                        {
+                            if (toolBtnRecs[i].Contains(mouse.X, mouse.Y)) DrawTool = (Tool)i;
+                        }
+
+                        // check if the mouse in on a color button
+                        for (int i = 0; i < colorRecs.Length; i++)
+                        {
+                            if (colorRecs[i].Contains(mouse.X, mouse.Y)) colorIdx = i;
+                        }
+                    }
+                    
+                }
             }
 
             // update the canvas if someone stops drawing
@@ -235,12 +308,91 @@ namespace PixelPaint
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             spriteBatch.Begin();
-            //Draw the Canvas
+            // Draw the Canvas
             canvas.Draw(spriteBatch, drawActive);
+
+            // Draw the color tools
+
+
+
             //Draw the HUD
+            DrawTools();
+
+            // draw mouse position DEBUG
+            DrawMousePos();
             spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+
+        private void DrawTools()
+        {
+            // Draw the color tool
+            spriteBatch.Draw((DrawTool == Tool.Box) ? squareBtnActiveImg : squareBtnImg, toolBtnRecs[BOX_BUTTON], Color.White);
+            spriteBatch.Draw((DrawTool == Tool.Circle) ? circleBtnActiveImg : circleBtnImg, toolBtnRecs[CIRCLE_BUTTON], Color.White);
+            spriteBatch.Draw((DrawTool == Tool.Fill) ? fillBtnActiveImg : fillBtnImg, toolBtnRecs[FILL_BUTTON], Color.White);
+
+            // Draw the color buttons
+            for (int i = 0; i < colorRecs.Length; i++)
+            {
+                spriteBatch.Draw(colorImgs[i], colorRecs[i], Color.White);
+            }
+        }
+
+        /// <summary>
+        /// Center a set of rectangles horizontally, given the number of rectangles
+        /// </summary>
+        /// <param name="recs"></param>
+        /// <param name="posY"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
+        private Rectangle[] CenterHudRectangles(Rectangle[] recs, int posY, int width, int height, float offset = 0.5f)
+        {
+            // start from the left
+            Vector2 startPos = new Vector2(screenWidth - (hudWidth * offset) - ((width * recs.Length) * offset), posY);
+
+            for (int i = 0; i < recs.Length; i++)
+            {
+                recs[i] = new Rectangle((int)startPos.X + i * width, (int)startPos.Y, width, height);
+            }
+
+            return recs;
+        }
+
+        /// <summary>
+        /// Center a set of rectangles horizontally, given the number of rectangles, and how many rows
+        /// </summary>
+        /// <param name="recs"></param>
+        /// <param name="posY"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="rows"> number of rows to be centered </param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
+        private Rectangle[] CenterHudRectangles(Rectangle[] recs, int posY, int width, int height, int rows = 1, float offset = 0.5f)
+        {
+            // start from the left
+            Vector2 startPos = new Vector2(screenWidth - (hudWidth * offset) - ((width * recs.Length / rows) * offset), posY);
+
+            for (int i = 0; i < recs.Length / rows; i++)
+            {
+                recs[i] = new Rectangle((int)startPos.X + i * width, (int)startPos.Y, width, height);
+            }
+            for (int i = recs.Length / rows; i < recs.Length; i++)
+            {
+                recs[i] = new Rectangle((int)startPos.X + (i - recs.Length / rows) * width, (int)startPos.Y + height, width, height);
+            }
+
+            return recs;
+        }
+
+        private void DrawMousePos()
+        {
+            // Draw the mouse position
+            spriteBatch.DrawString(stackFont, $"Mouse Position: {mouse.X}, {mouse.Y}", new Vector2(10, 10), Color.Black);
         }
     }
 }
