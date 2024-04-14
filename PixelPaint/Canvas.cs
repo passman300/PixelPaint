@@ -163,10 +163,10 @@ namespace PixelPaint
         private void UpdateBox(MouseState mouse, MouseState prevMouse)
         {
             // update the location of the mouse to the top shape, in terms of canvas pixels
-            undoStack.Top().Update(MousePosToPixelCoord(mouse));
+            undoStack.Top().Update(MousePosToPixelCords(mouse));
 
             // check if the mouse is on the same x or y as the origin, pop shape
-            if (mouse.LeftButton == ButtonState.Pressed && prevMouse.LeftButton != ButtonState.Pressed && (MousePosToPixelCoord(mouse).X == undoStack.Top().Origin.X || MousePosToPixelCoord(mouse).Y == undoStack.Top().Origin.Y)) undoStack.Pop();
+            if (mouse.LeftButton == ButtonState.Pressed && prevMouse.LeftButton != ButtonState.Pressed && (MousePosToPixelCords(mouse).X == undoStack.Top().Origin.X || MousePosToPixelCords(mouse).Y == undoStack.Top().Origin.Y)) undoStack.Pop();
         }
 
         /// <summary>
@@ -177,7 +177,7 @@ namespace PixelPaint
         private void UpdateCircle(MouseState mouse, MouseState prevMouse)
         {
             // update the shape based on the location of the mouse
-            undoStack.Top().Update(MousePosToPixelCoord(mouse));
+            undoStack.Top().Update(MousePosToPixelCords(mouse));
 
             // check if the mouse position as the origin, pop shape
             if (mouse.LeftButton == ButtonState.Pressed && prevMouse.LeftButton != ButtonState.Pressed && mouse.Position.ToVector2() == undoStack.Top().Origin) undoStack.Pop();
@@ -186,7 +186,7 @@ namespace PixelPaint
         private void UpdateFill()
         {
             // update fill
-            undoStack.Top().Update(pixelColor);
+            undoStack.Top().Update();
 
             // instantly update the canvas pixels
             TopShapeToPixels();
@@ -200,7 +200,7 @@ namespace PixelPaint
         private void CreateBox(MouseState mouse, Color color)
         {
             // add a box to the shape stack
-            undoStack.Add(new Box(MousePosToPixelCoord(mouse), color));
+            undoStack.Add(new Box(MousePosToPixelCords(mouse), color));
         }
 
         /// <summary>
@@ -211,13 +211,13 @@ namespace PixelPaint
         private void CreateCircle(MouseState mouse, Color color)
         {
             // add a circle to the shape stack
-            undoStack.Add(new Circle(MousePosToPixelCoord(mouse), color));
+            undoStack.Add(new Circle(MousePosToPixelCords(mouse), color));
         }
 
         private void CreateFill(MouseState mouse, Color fillColor, Color clickColor)
         {
             // add a fill to the shape stack
-            undoStack.Add(new Fill(MousePosToPixelCoord(mouse), fillColor, clickColor));
+            undoStack.Add(new Fill(MousePosToPixelCords(mouse), fillColor, clickColor, pixelColor));
 
             // update the fill instantly
             UpdateFill();
@@ -225,7 +225,7 @@ namespace PixelPaint
 
         private Color GetMouseColor(MouseState mouse)
         {
-             return pixelColor[(int)MousePosToPixelCoord(mouse).X, (int)MousePosToPixelCoord(mouse).Y];
+             return pixelColor[(int)MousePosToPixelCords(mouse).X, (int)MousePosToPixelCords(mouse).Y];
         }
 
         /// <summary>
@@ -237,7 +237,7 @@ namespace PixelPaint
             if (undoStack.Count() == 0) return; 
 
             // only need to draw the top shape, as the other shapes have already been drawn
-            foreach (Vector2 pos in undoStack.Top().Points)
+            foreach (Vector2 pos in undoStack.Top().GetPoints())
             {
                 // check if the pixel is in bounds
                 if (pos.X < 0 || pos.X >= pixelColor.GetLength(0) || pos.Y < 0 || pos.Y >= pixelColor.GetLength(1)) continue; // continue if the pixel is out of bounds
@@ -252,7 +252,7 @@ namespace PixelPaint
         {
             foreach (Shape shape in undoStack.GetAll())
             {
-                foreach (Vector2 pos in shape.Points)
+                foreach (Vector2 pos in shape.GetPoints())
                 {
                     // check if the pixel is in bounds
                     if (pos.X < 0 || pos.X >= pixelColor.GetLength(0) || pos.Y < 0 || pos.Y >= pixelColor.GetLength(1)) continue; // continue if the pixel is out of bounds
@@ -304,13 +304,13 @@ namespace PixelPaint
             if (isActive)
             {
                 // draw the current shape
-                for (int i = 0; i < undoStack.Top().Points.Count; i++)
+                for (int i = 0; i < undoStack.Top().GetPoints().Count; i++)
                 {
                     // check if the pixel is in bounds
-                    if (undoStack.Top().Points[i].X < 0 || undoStack.Top().Points[i].X >= pixelColor.GetLength(0) || undoStack.Top().Points[i].Y < 0 || undoStack.Top().Points[i].Y >= pixelColor.GetLength(1)) continue; // continue if the pixel is out of bounds
+                    if (undoStack.Top().GetPoint(i).X < 0 || undoStack.Top().GetPoint(i).X >= pixelColor.GetLength(0) || undoStack.Top().GetPoint(i).Y < 0 || undoStack.Top().GetPoint(i).Y >= pixelColor.GetLength(1)) continue; // continue if the pixel is out of bounds
 
                     // draw the canvas pixel with the shape color
-                    spriteBatch.Draw(pixelTexture, new Rectangle((int)undoStack.Top().Points[i].X * pixelSize, (int)undoStack.Top().Points[i].Y * pixelSize, pixelSize, pixelSize), undoStack.Top().Color);
+                    spriteBatch.Draw(pixelTexture, new Rectangle((int)undoStack.Top().GetPoint(i).X * pixelSize, (int)undoStack.Top().GetPoint(i).Y * pixelSize, pixelSize, pixelSize), undoStack.Top().Color);
                 }
 
 
@@ -335,7 +335,7 @@ namespace PixelPaint
         /// </summary>
         /// <param name="mouse"></param>
         /// <returns></returns>
-        public Vector2 MousePosToPixelCoord(MouseState mouse)
+        public Vector2 MousePosToPixelCords(MouseState mouse)
         {
             return new Vector2(mouse.X / pixelSize, mouse.Y / pixelSize);
         }

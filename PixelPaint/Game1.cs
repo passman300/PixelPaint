@@ -1,15 +1,6 @@
-﻿using GameUtility;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Media;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace PixelPaint
 {
@@ -116,7 +107,7 @@ namespace PixelPaint
 
         //Track all HUD tool buttons rectangles
         private Rectangle[] toolBtnRecs = new Rectangle[NUM_TOOL_BUTTONS];
-       
+
         //Track all of the HUD images (action buttons, undo/redo, Clear Canvas, check boxes)
         private Texture2D squareBtnImg;
         private Texture2D squareBtnActiveImg;
@@ -281,7 +272,7 @@ namespace PixelPaint
                             if (colorRecs[i].Contains(mouse.X, mouse.Y)) colorIdx = i;
                         }
                     }
-                    
+
                 }
             }
 
@@ -294,7 +285,7 @@ namespace PixelPaint
                     drawActive = false;
                 }
             }
-            
+
 
             base.Update(gameTime);
         }
@@ -319,7 +310,7 @@ namespace PixelPaint
             DrawTools();
 
             // draw mouse position DEBUG
-            DrawMousePos();
+            // DrawMousePos();
             spriteBatch.End();
 
             base.Draw(gameTime);

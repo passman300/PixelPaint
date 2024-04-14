@@ -1,21 +1,13 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace PixelPaint
 {
     public class Shape
     {
-        public List<Vector2> Points
-        {
-            get;
-            set;
-        }
+        
+        protected List<Vector2> points = new List<Vector2>(); // <Vector>
 
         public Vector2 Origin
         {
@@ -34,17 +26,20 @@ namespace PixelPaint
             Origin = origin;
 
             Color = color;
-
-            Points = new List<Vector2>();
         }
 
         public virtual void Update(Vector2 mousePos) {}
 
-        public virtual void Update(Color[,] pixelColor) {}
+        public virtual void Update() {}
 
-        public virtual void GetPixels()
+        public virtual List<Vector2> GetPoints()
         {
-            
+            return points;
+        }
+
+        public virtual Vector2 GetPoint(int index)
+        {
+            return points[index];
         }
     }
 }

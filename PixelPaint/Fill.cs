@@ -16,24 +16,30 @@ namespace PixelPaint
 
         private Color clickColor;
 
-        private Color[,] pixelColor; // the pixel color array temporary storage
+        // private bool[,] isVisited;
 
-        int count = 0;
+        private Color[,] pixelColorCopy; // the pixel color array temporary storage
 
-        public Fill(Vector2 origin, Color fillColor, Color clickColor) : base(origin, fillColor)
+        private int count = 0;
+
+        public Fill(Vector2 origin, Color fillColor, Color clickColor, Color[,] pixelColor) : base(origin, fillColor)
         {
             this.clickColor = clickColor;
+
+            // fill the isVisited array
+            pixelColorCopy = pixelColor;
+
+            // isVisited = new bool[pixelColor.GetLength(0), pixelColor.GetLength(1)];
         }
 
-        public override void Update(Color[,] pixelColor)
+        public override void Update()
         {
             // only fill if the color is different
             if (clickColor == Color) return;
 
-            this.pixelColor = pixelColor;
-
-
             FloodFill(Origin);
+
+            Console.WriteLine(count + " - " + points.Count());
 
         }
 
@@ -43,19 +49,17 @@ namespace PixelPaint
 
             count++;
 
-            Console.WriteLine(count + " - " + Points.Count());
+            pixelColorCopy[(int)pos.X, (int)pos.Y] = Color;
 
-            pixelColor[(int)pos.X, (int)pos.Y] = Color;
-
-            Points.Add(pos);
+            points.Add(pos);
 
             for (int i = 0; i < directions.Length; i++)
             {
                 if (pos.X + directions[i].X >= 0 
-                    && pos.X + directions[i].X < pixelColor.GetLength(0) 
+                    && pos.X + directions[i].X < pixelColorCopy.GetLength(0) 
                     && pos.Y + directions[i].Y >= 0 
-                    && pos.Y + directions[i].Y < pixelColor.GetLength(1) 
-                    && pixelColor[(int)(pos.X + directions[i].X), (int)(pos.Y + directions[i].Y)] == clickColor)
+                    && pos.Y + directions[i].Y < pixelColorCopy.GetLength(1) 
+                    && pixelColorCopy[(int)(pos.X + directions[i].X), (int)(pos.Y + directions[i].Y)] == clickColor)
                 {
                     FloodFill(pos + directions[i]);
                 }
