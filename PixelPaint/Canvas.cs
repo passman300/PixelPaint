@@ -9,7 +9,7 @@ namespace PixelPaint
     internal class Canvas
     {
         // pixel border width
-        private int BORDER_WIDTH = 1;
+        private const int BORDER_WIDTH = 1;
 
         // pixel color
         private int[,] pixelColor;

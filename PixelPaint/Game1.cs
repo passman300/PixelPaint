@@ -31,17 +31,6 @@ namespace PixelPaint
         private const int FILL_BUTTON = 2;
         private const int UNDO_BUTTON = 0;
         private const int REDO_BUTTON = 1;
-        private const int SMALL_CANVAS_BUTTON = 0;
-        private const int MEDIUM_CANVAS_BUTTON = 1;
-        private const int LARGE_CANVAS_BUTTON = 2;
-        private const int BLACK_BUTTON = 0;
-        private const int WHITE_BUTTON = 1;
-        private const int GREY_BUTTON = 2;
-        private const int YELLOW_BUTTON = 3;
-        private const int RED_BUTTON = 4;
-        private const int GREEN_BUTTON = 5;
-        private const int BLUE_BUTTON = 6;
-        private const int PINK_BUTTON = 7;
 
         //Track the states of the canvas
         private const byte UNCHECKED = 0;
