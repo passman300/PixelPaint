@@ -15,13 +15,13 @@ namespace PixelPaint
             set;
         }
 
-        public Color Color
+        public int Color
         {
             get;
             set;
         }
 
-        public Shape(Vector2 origin, Color color)
+        public Shape(Vector2 origin, int color)
         {
             Origin = origin;
 

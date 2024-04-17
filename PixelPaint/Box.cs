@@ -5,7 +5,7 @@ namespace PixelPaint
 {
     public class Box : Shape
     {
-        public Box(Vector2 origin,  Color color) : base(origin, color)
+        public Box(Vector2 origin,  int color) : base(origin, color)
         {
             points.Add(origin);
         }

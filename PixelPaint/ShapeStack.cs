@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -50,8 +51,13 @@ namespace PixelPaint
 
             for (int i = 0; i < Math.Min(Count(), 5); i++)
             {
-                topFive.Add(Top().Color.ToString().ToUpper() + " - " + Top().GetType().Name);
+                topFive.Add(Game1.colorText[shapes[shapes.Count - 1 - i].Color] + " - " + shapes[shapes.Count - 1 - i].GetType().Name);
+                Console.Write(Game1.colorText[shapes[shapes.Count - 1 - i].Color] + " - " + shapes[shapes.Count - 1 - i].GetType().Name + ",");            
             }
+
+            Console.WriteLine();
+
+
 
             return topFive;
         }

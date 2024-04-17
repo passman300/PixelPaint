@@ -1,89 +1,41 @@
 ﻿using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Net.NetworkInformation;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PixelPaint
 {
     internal class Fill : Shape
     {
+        private int clickColor;
 
-        private Vector2[] directions = {new Vector2(0, 1), new Vector2(1, 0), new Vector2(0, -1), new Vector2(-1, 0)};
+        private int[,] pixelColorCopy; // the pixel color array temporary storage
 
-        private Color clickColor;
-
-        private bool[,] isVisited;
-
-        private Color[,] pixelColorCopy; // the pixel color array temporary storage
-
-        private int count = 0;
-
-        public Fill(Vector2 origin, Color fillColor, Color clickColor, Color[,] pixelColor) : base(origin, fillColor)
+        public Fill(Vector2 origin, int fillColor, int clickColor, int[,] pixelColor) : base(origin, fillColor)
         {
             this.clickColor = clickColor;
 
-
             // fill the isVisited array
             pixelColorCopy = pixelColor;
-
-            isVisited = new bool[pixelColor.GetLength(0), pixelColor.GetLength(1)];
         }
 
         public override void Update()
         {
             // only fill if the color is different
-            if (clickColor == Color) return;
+            if (clickColor == Color) return; // return if the color is the same since it's already filled
 
-            FloodFill(Origin);
-
-            Console.WriteLine(count + " - " + points.Count());
+            FloodFill((int)Origin.X, (int)Origin.Y);
         }
 
-        private void FloodFill(Vector2 pos)
+        private void FloodFill(int x, int y)
         {
-            //  if (clickColor == Color) return;
+            if (x < 0 || x >= pixelColorCopy.GetLength(0) || y < 0 || y >= pixelColorCopy.GetLength(1)) return; // return if the pixel is out of bounds
+            if (pixelColorCopy[x, y] != clickColor) return; // return if the pixel is not the color to fill
 
-            count++;
+            points.Add(new Vector2(x, y));
+            pixelColorCopy[x, y] = Color;
 
-            isVisited[(int)pos.X, (int)pos.Y] = true;
-
-
-            points.Add(pos);
-
-            for (int i = 0; i < directions.Length; i++)
-            {
-                if (pos.X + directions[i].X >= 0 
-                    && pos.X + directions[i].X < isVisited.GetLength(0) 
-                    && pos.Y + directions[i].Y >= 0 
-                    && pos.Y + directions[i].Y < isVisited.GetLength(1) 
-                    && pixelColorCopy[(int)(pos.X + directions[i].X), (int)(pos.Y + directions[i].Y)] == clickColor 
-                    && !isVisited[(int)(pos.X + directions[i].X), (int)(pos.Y + directions[i].Y)])
-                {
-                    FloodFill(pos + directions[i]);
-                }
-            }
-
-            
-
-
-            //if (pixelColor[(int)pos.X, (int)pos.Y] == clickColor)
-            //{
-            //    pixelColor[(int)pos.X, (int)pos.Y] = Color;
-
-            //    Points.Add(pos);
-
-            //    for (int i = 0; i < directions.Length; i++)
-            //    {
-            //        if (pos.X + directions[i].X >= 0 && pos.X + directions[i].X < pixelColor.GetLength(0) && pos.Y + directions[i].Y >= 0 && pos.Y + directions[i].Y < pixelColor.GetLength(1) && pixelColor[(int)(pos.X + directions[i].X), (int)(pos.Y + directions[i].Y)] == clickColor)
-            //        {
-            //            FloodFill(pos + directions[i]);
-            //        }
-            //    }
-            //}
+            FloodFill(x - 1, y);
+            FloodFill(x + 1, y);
+            FloodFill(x, y - 1);
+            FloodFill(x, y + 1);
         }
     }
 }

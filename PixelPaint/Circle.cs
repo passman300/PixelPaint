@@ -9,7 +9,7 @@ namespace PixelPaint
 
         public float Radius { get; set; }
 
-        public Circle(Vector2 origin, Color color) : base(origin, color) { Radius = 0; }
+        public Circle(Vector2 origin, int color) : base(origin, color) { Radius = 0; }
 
         public override void Update(Vector2 mousePos)
         {

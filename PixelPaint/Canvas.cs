@@ -12,7 +12,7 @@ namespace PixelPaint
         private int BORDER_WIDTH = 1;
 
         // pixel color
-        private Color[,] pixelColor;
+        private int[,] pixelColor;
 
         // pixel size
         private int pixelSize;
@@ -38,7 +38,7 @@ namespace PixelPaint
                 canvasSize = value;
 
                 pixelSize = ScreenSize / canvasSize;
-                pixelColor = new Color[canvasSize, canvasSize];
+                pixelColor = new int[canvasSize, canvasSize];
             }
         }
 
@@ -61,7 +61,7 @@ namespace PixelPaint
 
             pixelSize = screenSize / canvasSize; // size of each canvas pixel
 
-            pixelColor = new Color[canvasSize, canvasSize]; // initialize the pixel color 2d array
+            pixelColor = new int[canvasSize, canvasSize]; // initialize the pixel color 2d array
 
             this.pixelTexture = pixelTexture; // set the pixel texture
 
@@ -70,6 +70,7 @@ namespace PixelPaint
 
             // initialize the shape stack
             undoStack = new ShapeStack();
+            redoStack = new ShapeStack();
         }
 
         public void Undo()
@@ -100,7 +101,7 @@ namespace PixelPaint
         /// <param name="mouse"> the current mouse state </param>
         /// <param name="curColor"> the current color selected </param>
         /// <param name="fillColor"> the color of the fill </param>
-        public void Create(Game1.Tool tool, MouseState mouse, Color curColor)
+        public void Create(Game1.Tool tool, MouseState mouse, int curColor)
         {
             switch (tool)
             {
@@ -114,6 +115,8 @@ namespace PixelPaint
                     CreateFill(mouse, curColor, GetMouseColor(mouse));
                     break;
             }
+
+            Console.WriteLine(undoStack.Count());
         }
 
         /// <summary>
@@ -148,6 +151,9 @@ namespace PixelPaint
             {
                 // update the pixel color
                 TopShapeToPixels();
+                
+                // clear the redo stack
+                redoStack.Clear();
 
                 return false; // return false because the canvas in no longer needs to be updated
             }
@@ -190,6 +196,9 @@ namespace PixelPaint
 
             // instantly update the canvas pixels
             TopShapeToPixels();
+
+            // clear the redo stack
+            redoStack.Clear();
         }
 
         /// <summary>
@@ -197,7 +206,7 @@ namespace PixelPaint
         /// </summary>
         /// <param name="mouse"> the current mouse state </param>
         /// <param name="color"> the current color selected </param>
-        private void CreateBox(MouseState mouse, Color color)
+        private void CreateBox(MouseState mouse, int color)
         {
             // add a box to the shape stack
             undoStack.Add(new Box(MousePosToPixelCords(mouse), color));
@@ -208,13 +217,13 @@ namespace PixelPaint
         /// </summary>
         /// <param name="mouse"> the current mouse state </param>
         /// <param name="color"> the current color selected </param>
-        private void CreateCircle(MouseState mouse, Color color)
+        private void CreateCircle(MouseState mouse, int color)
         {
             // add a circle to the shape stack
             undoStack.Add(new Circle(MousePosToPixelCords(mouse), color));
         }
 
-        private void CreateFill(MouseState mouse, Color fillColor, Color clickColor)
+        private void CreateFill(MouseState mouse, int fillColor, int clickColor)
         {
             // add a fill to the shape stack
             undoStack.Add(new Fill(MousePosToPixelCords(mouse), fillColor, clickColor, pixelColor));
@@ -223,7 +232,7 @@ namespace PixelPaint
             UpdateFill();
         }
 
-        private Color GetMouseColor(MouseState mouse)
+        private int GetMouseColor(MouseState mouse)
         {
              return pixelColor[(int)MousePosToPixelCords(mouse).X, (int)MousePosToPixelCords(mouse).Y];
         }
@@ -268,7 +277,7 @@ namespace PixelPaint
         {
             for (int i = 0; i < pixelColor.GetLength(0); i++)
                 for (int j = 0; j < pixelColor.GetLength(1); j++)
-                    pixelColor[i, j] = Color.White;
+                    pixelColor[i, j] = Game1.WHITE;
         }
 
         /// <summary>
@@ -295,8 +304,7 @@ namespace PixelPaint
             {
                 for (int j = 0; j < pixelColor.GetLength(1); j++)
                 {
-                    spriteBatch.Draw(pixelTexture, new Rectangle(i * pixelSize, j * pixelSize, pixelSize, pixelSize), pixelColor[i, j]); // draw each canvas pixel
-
+                    spriteBatch.Draw(pixelTexture, new Rectangle(i * pixelSize, j * pixelSize, pixelSize, pixelSize), Game1.colors[pixelColor[i, j]]); // draw each canvas pixel
                 }
             }
 
@@ -310,13 +318,13 @@ namespace PixelPaint
                     if (undoStack.Top().GetPoint(i).X < 0 || undoStack.Top().GetPoint(i).X >= pixelColor.GetLength(0) || undoStack.Top().GetPoint(i).Y < 0 || undoStack.Top().GetPoint(i).Y >= pixelColor.GetLength(1)) continue; // continue if the pixel is out of bounds
 
                     // draw the canvas pixel with the shape color
-                    spriteBatch.Draw(pixelTexture, new Rectangle((int)undoStack.Top().GetPoint(i).X * pixelSize, (int)undoStack.Top().GetPoint(i).Y * pixelSize, pixelSize, pixelSize), undoStack.Top().Color);
+                    spriteBatch.Draw(pixelTexture, new Rectangle((int)undoStack.Top().GetPoint(i).X * pixelSize, (int)undoStack.Top().GetPoint(i).Y * pixelSize, pixelSize, pixelSize), Game1.colors[undoStack.Top().Color]);
                 }
 
 
                 // DEBUG draw the origin
                 if (undoStack.Count() < 1) return;
-                spriteBatch.Draw(pixelTexture, new Rectangle((int)undoStack.Top().Origin.X * pixelSize, (int)undoStack.Top().Origin.Y * pixelSize, pixelSize, pixelSize), Color.Red); // draw the origin of the shape
+                spriteBatch.Draw(pixelTexture, new Rectangle((int)undoStack.Top().Origin.X * pixelSize, (int)undoStack.Top().Origin.Y * pixelSize, pixelSize, pixelSize), Color.DarkViolet); // draw the origin of the shape
             }
 
             // draw the grid
