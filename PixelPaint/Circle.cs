@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
+using System.Collections.Generic;
 
 namespace PixelPaint
 {
@@ -7,22 +8,26 @@ namespace PixelPaint
     {
         private const float ANGLE_STEP = 0.01f;
 
+        private HashSet<Point> pointsSet = new HashSet<Point>();
+
         public float Radius { get; set; }
 
-        public Circle(Vector2 origin, int color) : base(origin, color) { Radius = 0; }
+        public Circle(Point origin, byte color) : base(origin, color) { Radius = 0; }
 
-        public override void Update(Vector2 mousePos)
+        public override void Update(Point mousePos)
         {
             points.Clear();
 
-            Radius = Vector2.Distance(Origin, mousePos);
+            pointsSet.Clear();
 
-            // draw the circle points based on the radius, and the origin position
+            Radius = (float)Math.Sqrt(Math.Pow(mousePos.X - Origin.X, 2) + Math.Pow(mousePos.Y - Origin.Y, 2));
 
             for (float i = 0; i < Math.PI * 2; i += ANGLE_STEP)
             {
-                points.Add(new Vector2((int)Math.Round((float)Math.Cos(i) * Radius) + Origin.X, (int)Math.Round((float)Math.Sin(i) * Radius) + Origin.Y));
-            }
+                pointsSet.Add(new Point((int)Math.Round((float)Math.Cos(i) * Radius) + Origin.X, (int)Math.Round((float)Math.Sin(i) * Radius) + Origin.Y));
+            } 
+
+            points = new List<Point>(pointsSet);
         }
     }
 }

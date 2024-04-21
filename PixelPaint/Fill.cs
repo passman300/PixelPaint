@@ -4,11 +4,11 @@ namespace PixelPaint
 {
     internal class Fill : Shape
     {
-        private int clickColor;
+        private byte clickColor;
 
-        private int[,] pixelColorCopy; // the pixel color array temporary storage
+        private byte[,] pixelColorCopy; // the pixel color array temporary storage
 
-        public Fill(Vector2 origin, int fillColor, int clickColor, int[,] pixelColor) : base(origin, fillColor)
+        public Fill(Point origin, byte fillColor, byte clickColor, byte[,] pixelColor) : base(origin, fillColor)
         {
             this.clickColor = clickColor;
 
@@ -21,7 +21,7 @@ namespace PixelPaint
             // only fill if the color is different
             if (clickColor == Color) return; // return if the color is the same since it's already filled
 
-            FloodFill((int)Origin.X, (int)Origin.Y);
+            FloodFill(Origin.X, Origin.Y);
         }
 
         private void FloodFill(int x, int y)
@@ -29,7 +29,7 @@ namespace PixelPaint
             if (x < 0 || x >= pixelColorCopy.GetLength(0) || y < 0 || y >= pixelColorCopy.GetLength(1)) return; // return if the pixel is out of bounds
             if (pixelColorCopy[x, y] != clickColor) return; // return if the pixel is not the color to fill
 
-            points.Add(new Vector2(x, y));
+            points.Add(new Point(x, y));
             pixelColorCopy[x, y] = Color;
 
             FloodFill(x - 1, y);

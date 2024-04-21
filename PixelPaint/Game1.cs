@@ -1,9 +1,15 @@
-﻿using Microsoft.Xna.Framework;
+﻿//Author: Colin Wang
+//File Name: Game1.cs
+//Project Name: PASS2 pixel paint program
+//Created Date: April 10, 2024
+//Modified Date: April 21 2024
+//Description: Drawing programing with colors, boxes, circles, and fills with undo and redo capabilities
+
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
-using System.ComponentModel;
-using System.Runtime.ConstrainedExecution;
+
 
 namespace PixelPaint
 {
@@ -38,23 +44,23 @@ namespace PixelPaint
         private const byte CHECKED = 2;
 
         //Track Y positions of title tool title 
-        private const int TITLE_Y = 820;
-        private const int TOOL_TITLE_Y = 820;
-        private const int DRAW_ACTION_TITLE_Y = 70;
+        private const int TITLE_Y = 20;
+        private const int TOOL_TITLE_X = 820;
+        private const int DRAW_ACTION_TITLE_Y = 55;
         private const int ACTION_TITLE_Y = 160;
         private const int UNDO_TITLE_Y = 280;
-        private const int CANVAS_SIZE_TITLE_Y = 430;
+        private const int CANVAS_SIZE_TITLE_Y = 400;
         private const int COLOR_TITLE_Y = 590;
-        private const int COLOR_PICKER_TITLE_Y = 700;
+        private const int CUR_COLOR_Y = 700;
 
         // title button Y offset
-        private const int TITLE_BTN_Y_OFFSET = 10;
+        private const int TITLE_BTN_Y_OFFSET = 28;
 
         // Track the X position of the undo redo buttons
         private const int UNDO_REDO_BUTTON_X = 930;
 
         // Track the space between two canvas size buttons
-        private const int CANVAS_SIZE_BUTTON_SPACING_X = 7;
+        private const int CANVAS_SIZE_BUTTON_SPACING_X = 6;
 
         //Track HUD button widths and heights
         private const int LARGE_BUTTON_WIDTH = 90;
@@ -76,10 +82,10 @@ namespace PixelPaint
         public const int BLUE = 6;
         public const int PINK = 7;
 
-        //Track the number of availabe colors
+        //Track the number of available colors
         private const int NUM_COLORS = 8;
         public Tool DrawTool { get; set; }
-        private bool drawActive { get; set; }
+        private bool DrawActive { get; set; }
 
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
@@ -107,9 +113,9 @@ namespace PixelPaint
 
         //Track the possible NxN grid size dimensions (all even divisors of 800)
         //curDimIdx is the index into the array of the active grid size
-        private int[] dims = new int[] { 10, 16, 20, 25, 32, 40, 50, 80};
+        private int[] dims = new int[] { 10, 16, 20, 25, 32, 40, 50, 80 };
         private int curDimIdx;
-        private int nextcurDimIdx;
+        private int nextDimIdx;
 
         //Track all HUD tool buttons rectangles
         private Rectangle[] toolBtnRecs = new Rectangle[NUM_TOOL_BUTTONS];
@@ -130,7 +136,7 @@ namespace PixelPaint
         private Rectangle colorSelectRec;
         public static readonly Color[] colors = new Color[NUM_COLORS];
         public static readonly string[] colorText = new string[NUM_COLORS];
-        private int colorIdx = BLACK;
+        private byte colorIdx = BLACK;
 
         //Track all of the HUD images (action buttons, undo/redo, Clear Canvas, check boxes)
         private Texture2D squareBtnImg;
@@ -139,7 +145,7 @@ namespace PixelPaint
         private Texture2D circleBtnActiveImg;
         private Texture2D fillBtnImg;
         private Texture2D fillBtnActiveImg;
-        private Texture2D undoBtnImg;
+        private Texture2D undoBtnImg; // QUESTION, May I remove this?
         private Texture2D redoBtnImg;
         private Texture2D clearBtnImg;
         private Texture2D checkedBoxImg;
@@ -234,6 +240,7 @@ namespace PixelPaint
 
             //Set the active dimension index to the largest size possible
             curDimIdx = dims.Length - 1;
+            nextDimIdx = dims.Length - 1;
 
             // Set the active canvas size
             canvasSizeSelected[curDimIdx] = CHECKED;
@@ -242,7 +249,7 @@ namespace PixelPaint
             canvas = new Canvas(dims[curDimIdx], screenHeight, pxlImg);
 
             DrawTool = Tool.Box; // set the default drawing tool
-            
+
             // Setup the tool buttons recs
             toolBtnRecs = new Rectangle[NUM_TOOL_BUTTONS];
             toolBtnRecs = CenterHudRectangles(toolBtnRecs, DRAW_ACTION_TITLE_Y + TITLE_BTN_Y_OFFSET, MEDIUM_BUTTON_WIDTH, MEDIUM_BUTTON_HEIGHT, 0.5f);
@@ -252,14 +259,14 @@ namespace PixelPaint
             undoRedoBtnRecs[REDO_BUTTON] = new Rectangle(UNDO_REDO_BUTTON_X, UNDO_TITLE_Y + TITLE_BTN_Y_OFFSET, MEDIUM_BUTTON_WIDTH, MEDIUM_BUTTON_HEIGHT);
 
             // Set up canvas size buttons
-            canvasSizeBtnRecs = CenterHudRectangles(canvasSizeBtnRecs, CANVAS_SIZE_TITLE_Y + TITLE_BTN_Y_OFFSET, EXTRA_SMALL_BUTTON_WIDTH, EXTRA_SMALL_BUTTON_HEIGHT, 1, CANVAS_SIZE_BUTTON_SPACING_X);
+            canvasSizeBtnRecs = CenterHudRectangles(canvasSizeBtnRecs, (int)(CANVAS_SIZE_TITLE_Y + TITLE_BTN_Y_OFFSET + uiFont.MeasureString(" ").Y), EXTRA_SMALL_BUTTON_WIDTH, EXTRA_SMALL_BUTTON_HEIGHT, 1, CANVAS_SIZE_BUTTON_SPACING_X);
 
             // Set up the clear canvas button
-            clearCanvasBtnRec = CenterHudRectangle(clearCanvasBtnRec, canvasSizeBtnRecs[0].Bottom + TITLE_BTN_Y_OFFSET, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT);
+            clearCanvasBtnRec = CenterHudRectangle(canvasSizeBtnRecs[0].Top + TITLE_BTN_Y_OFFSET, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT);
 
             // Setup the color buttons rectangle
             colorRecs = CenterHudRectangles(colorRecs, COLOR_TITLE_Y + TITLE_BTN_Y_OFFSET, SMALL_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT, 2, 0.5f);
-            colorSelectRec = CenterHudRectangle(colorSelectRec, COLOR_PICKER_TITLE_Y, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT);
+            colorSelectRec = CenterHudRectangle(CUR_COLOR_Y, LARGE_BUTTON_WIDTH, LARGE_BUTTON_HEIGHT);
         }
 
         /// <summary>
@@ -283,8 +290,10 @@ namespace PixelPaint
             mouse = Mouse.GetState();
 
             // check if not drawing
-            if (!drawActive)
+            if (!DrawActive)
             {
+                canvas.UpdateMouseCords(mouse);
+
                 // check if the mouse is clicks
                 if (mouse.LeftButton == ButtonState.Pressed && prevMouse.LeftButton != ButtonState.Pressed)
                 {
@@ -294,8 +303,8 @@ namespace PixelPaint
                         // create a new shape
                         canvas.Create(DrawTool, mouse, colorIdx);
 
-                        // set drawActive to true
-                        drawActive = true;
+                        // set DrawActive to true
+                        DrawActive = true;
                     }
                     else
                     {
@@ -305,6 +314,8 @@ namespace PixelPaint
 
                         UpdateCanvasSizeButtons();
 
+                        UpdateClearCanvasButton();
+
                         UpdateColorPalette();
                     }
 
@@ -312,12 +323,12 @@ namespace PixelPaint
             }
 
             // update the canvas if someone stops drawing
-            else if (drawActive)
+            else if (DrawActive)
             {
-                // update the canvas, and set drawActive to false if the canvas is no longer being drawn
+                // update the canvas, and set DrawActive to false if the canvas is no longer being drawn
                 if (!canvas.Update(DrawTool, mouse, prevMouse))
                 {
-                    drawActive = false;
+                    DrawActive = false;
                 }
             }
 
@@ -348,26 +359,26 @@ namespace PixelPaint
                 {
                     if (i != curDimIdx)
                     {
-                        if (nextcurDimIdx != i)
+                        if (nextDimIdx != i)
                         {
-                            canvasSizeSelected[nextcurDimIdx] = (curDimIdx == nextcurDimIdx) ? CHECKED : UNCHECKED;
+                            canvasSizeSelected[nextDimIdx] = (curDimIdx == nextDimIdx) ? CHECKED : UNCHECKED;
 
-                            nextcurDimIdx = i;
+                            nextDimIdx = i;
 
                             canvasSizeSelected[i] = TO_BE_CHECKED;
                         }
                         else
                         {
-                            nextcurDimIdx = curDimIdx;
+                            nextDimIdx = curDimIdx;
 
                             canvasSizeSelected[i] = UNCHECKED;
                         }
                     }
                     else
                     {
-                        canvasSizeSelected[nextcurDimIdx] = (curDimIdx == nextcurDimIdx) ? CHECKED : UNCHECKED;
+                        canvasSizeSelected[nextDimIdx] = (curDimIdx == nextDimIdx) ? CHECKED : UNCHECKED;
 
-                        nextcurDimIdx = curDimIdx;
+                        nextDimIdx = curDimIdx;
                     }
                 }
             }
@@ -375,18 +386,23 @@ namespace PixelPaint
 
         private void UpdateClearCanvasButton()
         {
-            if (clearCanvasBtnRec.Contains(mouse.X, mouse.Y)) 
+            if (clearCanvasBtnRec.Contains(mouse.X, mouse.Y))
             {
-                canvas = new Canvas(dims[curDimIdx], screenHeight, pxlImg);
-            }
+                canvasSizeSelected[curDimIdx] = UNCHECKED;
 
+                canvasSizeSelected[nextDimIdx] = CHECKED;
+
+                curDimIdx = nextDimIdx;
+
+                canvas = new Canvas(dims[nextDimIdx], screenHeight, pxlImg);
+            }
         }
 
         private void UpdateColorPalette()
         {
             for (int i = 0; i < NUM_COLOR_BUTTONS; i++)
             {
-                if (colorRecs[i].Contains(mouse.X, mouse.Y)) colorIdx = i;
+                if (colorRecs[i].Contains(mouse.X, mouse.Y)) colorIdx = (Byte)i;
             }
         }
 
@@ -400,7 +416,7 @@ namespace PixelPaint
 
             spriteBatch.Begin();
             // Draw the Canvas
-            canvas.Draw(spriteBatch, drawActive);
+            canvas.Draw(spriteBatch, DrawActive);
 
             //Draw the HUD
             DrawHud();
@@ -415,14 +431,22 @@ namespace PixelPaint
 
         private void DrawHud()
         {
+            // Draw the title
+            DrawShadowText(uiFont, "SLSS PAINT", CenterText(uiFont, "SLSS PAINT", screenWidth - hudWidth / 2, TITLE_Y), new Vector2(1, 1), Color.Black, Color.White);
+
+            spriteBatch.DrawString(uiFont, "Draw Action", new Vector2(TOOL_TITLE_X, DRAW_ACTION_TITLE_Y), Color.White);
             DrawTools();
 
+            spriteBatch.DrawString(uiFont, "Action Stack", new Vector2(TOOL_TITLE_X, ACTION_TITLE_Y), Color.White);
+            spriteBatch.DrawString(uiFont, "Undo Stack", new Vector2(TOOL_TITLE_X, UNDO_TITLE_Y), Color.White);
             DrawUndoRedo();
 
+            spriteBatch.DrawString(uiFont, "Grid Size (NxN)", new Vector2(TOOL_TITLE_X, CANVAS_SIZE_TITLE_Y), Color.White);
             DrawCanvasSizeSelector();
 
             DrawClear();
 
+            spriteBatch.DrawString(uiFont, "Color Palette", new Vector2(TOOL_TITLE_X, COLOR_TITLE_Y), Color.White);
             DrawColorPalette();
         }
 
@@ -443,16 +467,19 @@ namespace PixelPaint
             // Draw the top five undo actions
             for (int i = 0; i < canvas.GetTopFiveUndo().Count; i++)
             {
-                spriteBatch.DrawString(stackFont, canvas.GetTopFiveUndo()[i], new Vector2(TOOL_TITLE_Y, ACTION_TITLE_Y + TITLE_BTN_Y_OFFSET + (i * stackFont.MeasureString(canvas.GetTopFiveUndo()[i]).Y)), Color.White);
+                spriteBatch.DrawString(stackFont, canvas.GetTopFiveUndo()[i], new Vector2(TOOL_TITLE_X, ACTION_TITLE_Y + TITLE_BTN_Y_OFFSET + (i * stackFont.MeasureString(canvas.GetTopFiveUndo()[i]).Y)), Color.White);
             }
 
             // Draw the top five redo actions
             for (int i = 0; i < canvas.GetTopFiveRedo().Count; i++)
             {
-                spriteBatch.DrawString(stackFont, canvas.GetTopFiveRedo()[i], new Vector2(TOOL_TITLE_Y, UNDO_TITLE_Y + TITLE_BTN_Y_OFFSET + (i * stackFont.MeasureString(canvas.GetTopFiveRedo()[i]).Y)), Color.White);
+                spriteBatch.DrawString(stackFont, canvas.GetTopFiveRedo()[i], new Vector2(TOOL_TITLE_X, UNDO_TITLE_Y + TITLE_BTN_Y_OFFSET + (i * stackFont.MeasureString(canvas.GetTopFiveRedo()[i]).Y)), Color.White);
             }
         }
 
+        /// <summary>
+        /// Draw the canvas size buttons and the size text
+        /// </summary>
         private void DrawCanvasSizeSelector()
         {
             // draw the canvas size buttons
@@ -470,15 +497,24 @@ namespace PixelPaint
                         spriteBatch.Draw(checkedBoxImg, canvasSizeBtnRecs[i], Color.White);
                         break;
                 }
+
+                // draw the canvas size text
+                spriteBatch.DrawString(stackFont, dims[i].ToString(), new Vector2(canvasSizeBtnRecs[i].X, canvasSizeBtnRecs[i].Y - uiFont.MeasureString(dims[i].ToString()).Y), Color.Yellow);
             }
         }
 
+        /// <summary>
+        /// Draw the clear canvas button
+        /// </summary>
         private void DrawClear()
         {
             // Draw the clear button
             spriteBatch.Draw(clearBtnImg, clearCanvasBtnRec, Color.White);
         }
 
+        /// <summary>
+        /// Draw the color palette colors
+        /// </summary>
         private void DrawColorPalette()
         {
             // Draw the color buttons
@@ -491,6 +527,25 @@ namespace PixelPaint
             spriteBatch.Draw(colorImgs[colorIdx], colorSelectRec, Color.White);
         }
 
+        private void DrawShadowText(SpriteFont font, string text, Vector2 pos, Vector2 shadowOffset, Color color, Color shadowColor)
+        {
+            spriteBatch.DrawString(font, text, pos + shadowOffset, shadowColor);
+            spriteBatch.DrawString(font, text, pos, color);
+        }
+
+        /// <summary>
+        /// Center a text horizontally
+        /// </summary>
+        /// <param name="font"></param>
+        /// <param name="text"></param>
+        /// <param name="centerX"></param>
+        /// <param name="PosY"></param>
+        /// <returns> vector2 of the centered text </returns>
+        private Vector2 CenterText(SpriteFont font, string text, int centerX, int PosY)
+        {
+            return new Vector2(centerX - font.MeasureString(text).X / 2, PosY);
+        }
+
         /// <summary>
         /// Center a set of rectangles horizontally, given the number of rectangles
         /// </summary>
@@ -499,7 +554,7 @@ namespace PixelPaint
         /// <param name="width"></param>
         /// <param name="height"></param>
         /// <param name="offset"></param>
-        /// <returns></returns>
+        /// <returns> list of rectangles </returns>
         private Rectangle[] CenterHudRectangles(Rectangle[] recs, int posY, int width, int height, float offset = 0.5f)
         {
             // start from the left
@@ -522,7 +577,7 @@ namespace PixelPaint
         /// <param name="height"></param>
         /// <param name="rows"> number of rows to be centered </param>
         /// <param name="offset"></param>
-        /// <returns></returns>
+        /// <returns> list of rectangles </returns>
         private Rectangle[] CenterHudRectangles(Rectangle[] recs, int posY, int width, int height, int rows = 1, float offset = 0.5f)
         {
             // start from the left
@@ -535,10 +590,20 @@ namespace PixelPaint
                     recs[i * recs.Length / rows + j] = new Rectangle((int)startPos.X + j * width, (int)startPos.Y + i * height, width, height);
                 }
             }
-
             return recs;
         }
 
+        /// <summary>
+        /// Center a set of rectangles horizontally, given the number of rectangles, how many rows, and the space between buttons
+        /// </summary>
+        /// <param name="recs"></param>
+        /// <param name="posY"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="rows"></param>
+        /// <param name="buttonSpacing"></param>
+        /// <param name="offset"></param>
+        /// <returns> list of rectangles </returns>
         private Rectangle[] CenterHudRectangles(Rectangle[] recs, int posY, int width, int height, int rows, int buttonSpacing, float offset = 0.5f)
         {
             Vector2 startPos = new Vector2(screenWidth - (hudWidth * offset) - (width * recs.Length / rows) * offset - ((buttonSpacing * (recs.Length / rows - 1)) / rows) * offset, posY);
@@ -555,11 +620,22 @@ namespace PixelPaint
         }
 
 
-        private Rectangle CenterHudRectangle(Rectangle rec, int posY, int width, int height, float offset = 0.5f)
+        /// <summary>
+        /// Center a singular rectangle
+        /// </summary>
+        /// <param name="posY"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="offset"></param>
+        /// <returns> a the centered rectangle </returns>
+        private Rectangle CenterHudRectangle(int posY, int width, int height, float offset = 0.5f)
         {
             return new Rectangle((int)(screenWidth - (hudWidth * offset) - (width * offset)), posY, width, height);
         }
 
+        /// <summary>
+        /// Draw the mouse position for DEBUG
+        /// </summary>
         private void DrawMousePos()
         {
             // Draw the mouse position

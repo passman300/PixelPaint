@@ -6,38 +6,29 @@ namespace PixelPaint
 {
     public class Shape
     {
-        
-        protected List<Vector2> points = new List<Vector2>(); // <Vector>
+        protected List<Point> points = new List<Point>(); // <Vector>
 
-        public Vector2 Origin
-        {
-            get;
-            set;
-        }
+        public Point Origin { get; set; }
 
-        public int Color
-        {
-            get;
-            set;
-        }
+        public byte Color { get; set; }
 
-        public Shape(Vector2 origin, int color)
+        public Shape(Point origin, byte color)
         {
             Origin = origin;
 
             Color = color;
         }
 
-        public virtual void Update(Vector2 mousePos) {}
+        public virtual void Update(Point mousePos) { }
 
-        public virtual void Update() {}
+        public virtual void Update() { }
 
-        public virtual List<Vector2> GetPoints()
+        public virtual List<Point> GetPoints()
         {
             return points;
         }
 
-        public virtual Vector2 GetPoint(int index)
+        public virtual Point GetPoint(int index)
         {
             return points[index];
         }
