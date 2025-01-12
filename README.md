@@ -1,4 +1,4 @@
-# AvaloniaTunes
+# PixelPaint
 
 ![image](https://github.com/user-attachments/assets/71f86077-1a45-4305-91ab-8e2c14e460c1)
 
