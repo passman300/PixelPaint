@@ -14,6 +14,13 @@ Pixel Painting Software Built ontop of the [MonoGame](https://monogame.net/) fra
 - Exporting Canvas to PNG
 - Canvas Changing and Undo Redo
 
+## Build
+
+1. Clone Repo
+2. Install MGCB using Nuget. [Link](https://www.nuget.org/packages/dotnet-mgcb-editor)
+3. Run MGCB and open ```PixelPaint/Content/Content.mgcb```
+4. Build Sprites and Assets
+5. Run project in Visual Studio
 
 ## Acknowledgments
 
